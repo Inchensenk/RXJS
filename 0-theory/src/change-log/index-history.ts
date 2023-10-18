@@ -1,4 +1,3 @@
-
 // import { defer, filter, from, iif, interval, map, Observable, of, OperatorFunction, pipe, skip, Subscriber, Subscription, take, tap, timer } from 'rxjs';
 // import { ajax } from 'rxjs/ajax';
 // import { SafeSubscriber } from 'rxjs/internal/Subscriber';
@@ -127,8 +126,6 @@
 //     })
 // }, 3000);
 
-
-
 // const ws = new WebSocket('ws://localhost:8081');
 
 // ws.onopen = () => {
@@ -173,8 +170,6 @@
 //     // ws.close();
 //     subscription.unsubscribe();
 // }, 5000)
-
-
 
 // interval(1000).subscribe(terminalLog);
 // timer(6000, 1000).subscribe(terminalLog);
@@ -484,7 +479,7 @@
 //         switchMap(([_, data]) => calculate$(data).pipe(
 //             catchError(error => {
 //                 console.log('catchError', error);
-    
+
 //                 return of('0');
 //             }),
 //         )),
@@ -663,7 +658,6 @@
 
 // scheduled(indexesArray.map(v => `New ${v}`), asyncScheduler).subscribe(terminalLog);
 // scheduled(indexesArray.map(v => `Old ${v}`), asyncScheduler).subscribe(terminalLog);
-
 
 // from(indexesArray)
 //     .pipe(

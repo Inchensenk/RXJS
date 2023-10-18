@@ -5,15 +5,15 @@ var clients = {};
 
 // WebSocket-сервер на порту 8081
 var webSocketServer = new WebSocketServer.Server({
-  port: 8081
+  port: 8081,
 });
-webSocketServer.on('connection', function(ws) {
+webSocketServer.on('connection', function (ws) {
   var id = Math.random();
   var intervalId;
 
   clients[id] = ws;
 
-  ws.on('message', function(message) {
+  ws.on('message', function (message) {
     if (message.toString() === 'on') {
       var counter = 0;
 
@@ -28,13 +28,12 @@ webSocketServer.on('connection', function(ws) {
 
     if (message.toString() === 'off') {
       clearInterval(intervalId);
-      
+
       return;
     }
   });
 
-  ws.on('close', function() {
+  ws.on('close', function () {
     delete clients[id];
   });
-
 });

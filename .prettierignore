@@ -1,0 +1,9 @@
+**/.git
+**/.svn
+**/*/node_modules
+**/*.md
+**/*.spec.ts
+**/main.ts
+dist
+/.angular
+**/*.yaml

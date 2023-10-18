@@ -13,7 +13,7 @@
 //         switchMap(([_, data]) => calculate$(data).pipe(
 //             catchError(error => {
 //                 console.log('catchError', error);
-    
+
 //                 return of('0');
 //             }),
 //         )),

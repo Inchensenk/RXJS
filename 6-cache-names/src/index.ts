@@ -10,7 +10,7 @@ new FormComponent(form1);
 form2.hidden = true;
 
 setTimeout(() => {
-    form2.hidden = false;
+  form2.hidden = false;
 
-    new FormComponent(form2);
+  new FormComponent(form2);
 }, 10000);

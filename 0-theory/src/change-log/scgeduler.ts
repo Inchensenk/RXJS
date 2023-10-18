@@ -11,7 +11,6 @@
 // scheduled(indexesArray.map(v => `New ${v}`), asyncScheduler).subscribe(terminalLog);
 // scheduled(indexesArray.map(v => `Old ${v}`), asyncScheduler).subscribe(terminalLog);
 
-
 // from(indexesArray)
 //     .pipe(
 //         tap(() => {
