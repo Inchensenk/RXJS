@@ -1,4 +1,4 @@
-import { Observable, Subscriber, Subscription } from 'rxjs';
+import { Observable } from 'rxjs';
 import '../../assets/css/style.css';
 import { terminalLog } from '../../utils/log-in-terminal';
 
@@ -327,7 +327,7 @@ setTimeout(() => {
 }, 5000);
 */
 
-
+/*пример 10 отписка от потока
 const sequence$ = new Observable<number>((subscriber: Subscriber<number>) => {
   console.log('CREATE');
 
@@ -393,3 +393,119 @@ allSubscription.add(subscription);
 setTimeout(()=>{
 allSubscription.unsubscribe();
 }, 4500);
+
+*/
+
+/*пример 11 горячий поток
+let count = 0;
+
+const sequence$ = new Observable<number>((subscriber: Subscriber<number>) => {
+  console.log('CREATE');
+
+
+  const intervalId = setInterval(() => {
+    console.log(`new counter ${count}`);
+
+    if (count === 5) {
+      //subscriber.error(`count = ${count}`);
+      //console.log('ERROR');
+
+      subscriber.complete();
+      console.log('COMPLETE');
+      return;
+    }
+
+    subscriber.next(count);
+    console.log('NEXT');
+
+    count += 1;
+  }, 1000);
+
+  return () => {
+    clearInterval(intervalId);
+    console.log('DESTROY');
+  };
+});
+
+const allSubscription = new Subscription();
+
+const subscription: Subscription = sequence$.subscribe({
+  next: (value) => {
+    terminalLog(`subscribe-1: ${value}`);
+  },
+  complete: () => {
+    terminalLog(`complete`);
+  },
+  error: (err) => {
+    terminalLog(`error: ${err}`);
+  },
+});
+
+allSubscription.add(subscription);
+
+setTimeout(() => {
+  const subscription: Subscription = sequence$.subscribe({
+    next: (value) => {
+      terminalLog(`subscribe-2: ${value}`);
+    },
+    complete: () => {
+      terminalLog(`complete`);
+    },
+    error: (err) => {
+      terminalLog(`error: ${err}`);
+    },
+  });
+
+allSubscription.add(subscription);
+
+}, 2000);
+
+setTimeout(()=>{
+allSubscription.unsubscribe();
+}, 4500);
+*/
+
+/*пример 12 горячий поток*/
+const ws = new WebSocket('ws://localhost:8081');
+
+ws.onopen = () => {
+  ws.send('on');
+};
+
+const wsMessage$ = new Observable<MessageEvent>(subscriber => {
+  console.log('CREATE');
+
+  function messageListener(message: MessageEvent){
+    subscriber.next(message);
+
+    console.log('NEXT');
+    
+  }
+
+    function closeListener(){
+    subscriber.complete();
+  }
+  
+  ws.addEventListener('message', messageListener);
+
+  ws.addEventListener('close', closeListener);
+
+  return () =>{
+    ws.removeEventListener('message', messageListener)
+    ws.removeEventListener('close', closeListener)
+
+    console.log('DESTROY');
+    
+  }
+
+});
+
+wsMessage$.subscribe(value =>{
+  terminalLog(`subscribe-1: ${value.data}`)
+});
+
+setTimeout(()=>{
+  wsMessage$.subscribe(value =>{
+  terminalLog(`subscribe-2: ${value.data}`)
+});
+}, 2000);
