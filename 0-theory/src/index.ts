@@ -1,6 +1,4 @@
-import { Observable } from 'rxjs';
 import '../../assets/css/style.css';
-import { terminalLog } from '../../utils/log-in-terminal';
 
 /* Пример 1
 const sequence = new Promise(resolve =>{
@@ -465,47 +463,67 @@ allSubscription.unsubscribe();
 }, 4500);
 */
 
-/*пример 12 горячий поток*/
+/*пример 12 горячий поток
 const ws = new WebSocket('ws://localhost:8081');
 
 ws.onopen = () => {
   ws.send('on');
 };
 
-const wsMessage$ = new Observable<MessageEvent>(subscriber => {
+const wsMessage$ = new Observable<MessageEvent>((subscriber) => {
   console.log('CREATE');
 
-  function messageListener(message: MessageEvent){
+  function messageListener(message: MessageEvent) {
     subscriber.next(message);
 
     console.log('NEXT');
-    
   }
 
-    function closeListener(){
+  function closeListener() {
     subscriber.complete();
   }
-  
+
   ws.addEventListener('message', messageListener);
 
   ws.addEventListener('close', closeListener);
 
-  return () =>{
-    ws.removeEventListener('message', messageListener)
-    ws.removeEventListener('close', closeListener)
+  return () => {
+    ws.removeEventListener('message', messageListener);
+    ws.removeEventListener('close', closeListener);
 
     console.log('DESTROY');
-    
-  }
-
+  };
 });
 
-wsMessage$.subscribe(value =>{
-  terminalLog(`subscribe-1: ${value.data}`)
+const subscription = wsMessage$.subscribe((value) => {
+  terminalLog(`subscribe-1: ${value.data}`);
 });
 
-setTimeout(()=>{
-  wsMessage$.subscribe(value =>{
-  terminalLog(`subscribe-2: ${value.data}`)
-});
+setTimeout(() => {
+  wsMessage$.subscribe((value) => {
+    terminalLog(`subscribe-2: ${value.data}`);
+  });
 }, 2000);
+
+setTimeout(() => {
+  //ws.close();
+  subscription.unsubscribe();
+}, 5000);
+
+
+
+Если смотреть со стороны паттерна ReactiveX то этот поток горячий, потому что хранилище и соответсвенно двигатель нашего потока находится вне конструктора. 
+То есть внутри конструктора мы просто слушаем какойто  внешний двигатеоль. Соответсвенно внешним двигателем выступает WebSocket. 
+Соответсвенно если мы будем подписываться на данный поток сразу или через сеттаймаут через какое то время, 
+в любом случае все подписчики будут получать синхронно одно и то же событие.
+
+По поведению, если смотреть на наш поток со стороны паттерна, является горячим. Все подписчики получают одно и то же значение.
+Потому что хранилище и движок находится вне конструктора. То есть он единый для всех потоков.
+
+Но именно в реализации паттерна в библиотеке RxJS наш поток является холодным. Мы не сделали его по настоящему горячим.
+Конструктор, а именно сердце потока, все таки вызывается каждый раз когда мы создаем новую подписку.
+
+Если смотреть со стороны паттерна все ок, поток горячий, но со стороны RxJS поток холодный.
+
+А вот чтобы этот холодный поток превратить в понастоящему горячий, нам нужен оператор мультикастинга.
+*/
