@@ -527,3 +527,86 @@ setTimeout(() => {
 
 А вот чтобы этот холодный поток превратить в понастоящему горячий, нам нужен оператор мультикастинга.
 */
+
+/* Шаблонный поток основанный на setInterval
+interval(1000).subscribe(terminalLog);
+ */
+
+/* Шаблонный поток основанный на setTimeout 
+timer(1000).subscribe(terminalLog);
+*/
+
+/* Шаблонный поток основанный на setTimeout и setInterval 
+timer(через сколько секунд, с каким интервалом).subscribe(terminalLog);
+timer(6000, 1000).subscribe(terminalLog);
+*/
+/* Шаблонный поток, который синхронно испускает значения переданные ему в аргументе
+of(1, 2, [3, 2], { count: 4 }).subscribe(terminalLog);
+*/
+/**Шаблонный поток, который принимает массив значений либо любой итерируемый объект 
+from([1, 2, [3, 2, 5], { count: 4 }]).subscribe(terminalLog);
+*/
+
+/** Пример from с итерируемым объектом (генератор)
+function* iteratorFn(seed: number, max: number) {
+  let i = seed;
+
+  while (i < max) {
+    yield i;
+    i++;
+  }
+}
+
+const iterator = iteratorFn(3, 1000);
+
+from(iterator).subscribe((x) => {
+  terminalLog(x);
+});
+*/
+
+/** Пример from с promise
+from(
+  fetch('https://learn.javascript.ru/courses/groups/api/participants?key=r1v5uj').then((res) =>
+    res.json(),
+  ),
+).subscribe(console.log);
+*/
+
+/*Пример from с promise
+from(Promise.resolve(4000)).subscribe(console.log);
+*/
+/* Пример ajax() функция RxJS для запросов.(Функционал такой же как выше from с fetch)
+ajax({
+  url: 'https://learn.javascript.ru/courses/groups/api/participants?key=r1v5uj',
+  method: 'GET',
+}).subscribe(console.log);
+*/
+
+/** defer() создает холодный поток на основе колбэка
+const stream$ = defer(() => {
+  const random = Math.round(Math.random() * 10);
+  if (random > 8) {
+    return of('TRUE 8');
+  } else {
+    return random > 5 ? of('TRUE 5') : of(`FALSE ${random}`);
+  }
+});
+
+stream$.subscribe(terminalLog);
+stream$.subscribe(terminalLog);
+stream$.subscribe(terminalLog);
+stream$.subscribe(terminalLog);
+stream$.subscribe(terminalLog);
+*/
+
+/* Частный случай defer(). 
+iif() возвращает TRUE, либо FALSE 
+и в зависимости от этого возвращает поток либо из второго аргумента либо из третьего
+
+const stream$ = iif(() => Math.round(Math.random() * 10) > 5, of('TRUE'), of(`FALSE`));
+stream$.subscribe(terminalLog);
+stream$.subscribe(terminalLog);
+stream$.subscribe(terminalLog);
+stream$.subscribe(terminalLog);
+stream$.subscribe(terminalLog);
+*/
