@@ -1,3 +1,4 @@
+import { filter, fromEvent, map, merge, zip } from 'rxjs';
 import '../../assets/css/style.css';
 /*
 //Поток по зажатию мыши
@@ -63,7 +64,7 @@ export const swipe$ = zip(down$.pipe(map(getXPosition)), up$.pipe(map(getXPositi
 */
 
 /* //Пример 3: Добавляем оператор merge() для комбинации 2х типов событий
-//и тип события TouchEvent для работы свайпа в мобильной версии 
+//и тип события TouchEvent для работы свайпа в мобильной версии */
 
 const down$ = merge(
   //Событие для десктопной версии
@@ -89,4 +90,3 @@ export const swipe$ = zip(down$.pipe(map(getXPosition)), up$.pipe(map(getXPositi
   // }),
   filter((diff) => Math.abs(diff) > 30),
 );
-*/

@@ -1,3 +1,4 @@
+import { Observable, OperatorFunction } from 'rxjs';
 import '../../assets/css/style.css';
 
 /* Пример 1
@@ -671,3 +672,303 @@ stream$
   )
   .subscribe(terminalLog);
   */
+
+/* //Пример кастомного оператора который умножает значения пришедшие в потоке на 2 
+function double(source$: Observable<number>): Observable<number> {
+  return new Observable((subscriber) => {
+    source$.subscribe({
+      next: (value) => {
+        subscriber.next(value * 2);
+      },
+    });
+  });
+}
+
+interval(1000)
+  .pipe(
+    double,
+    tap((value) => {
+      terminalLog(value);
+    }),
+  )
+  .subscribe();
+*/
+
+/* //Пример: Реализация уничтожения потока в методе double для избежания утечки памяти 
+function double(source$: Observable<number>): Observable<number> {
+  return new Observable((subscriber) => {
+    const subscription = source$.subscribe({
+      next: (value) => {
+        console.log('NEXT');
+        subscriber.next(value * 2);
+      },
+    });
+    return () => {
+      subscription.unsubscribe();
+      console.log('DESTROY');
+    };
+  });
+}
+
+const subscription = interval(1000)
+  .pipe(
+    double,
+    tap((value) => {
+      terminalLog(value);
+    }),
+  )
+  .subscribe();
+
+setTimeout(() => {
+  subscription.unsubscribe();
+}, 6000);
+*/
+
+/* //Пример для закрепления 
+
+const sequence$ = new Observable<number>((subscriber: Subscriber<number>) => {
+  console.log('CREATE');
+
+  let count = 0;
+
+  const intervalId = setInterval(() => {
+    console.log(`new counter ${count}`);
+
+    if (count === 5) {
+      //subscriber.error(`count = ${count}`);
+      //console.log('ERROR');
+
+      subscriber.complete();
+      console.log('COMPLETE');
+      return;
+    }
+
+    subscriber.next(count);
+    console.log('NEXT');
+
+    count += 1;
+  }, 1000);
+
+  return () => {
+    clearInterval(intervalId);
+    console.log('DESTROY');
+  };
+});
+
+function double(source$: Observable<number>): Observable<number> {
+  return new Observable((subscriber) => {
+    const subscription = source$.subscribe({
+      next: (value) => {
+        console.log('NEXT - double');
+        subscriber.next(value * 2);
+      },
+    });
+    return () => {
+      subscription.unsubscribe();
+      console.log('DESTROY - double');
+    };
+  });
+}
+
+const subscription = sequence$
+  .pipe(
+    double,
+    tap((value) => {
+      terminalLog(value);
+    }),
+  )
+  .subscribe();
+
+setTimeout(() => {
+  subscription.unsubscribe();
+}, 4000);
+*/
+/* //Обработка колбэка complete и error 
+const sequence$ = new Observable<number>((subscriber: Subscriber<number>) => {
+  console.log('CREATE');
+
+  let count = 0;
+
+  const intervalId = setInterval(() => {
+    console.log(`new counter ${count}`);
+
+    if (count === 5) {
+      subscriber.complete();
+      console.log('COMPLETE');
+      return;
+    }
+
+    subscriber.next(count);
+    console.log('NEXT');
+
+    count += 1;
+  }, 1000);
+
+  return () => {
+    clearInterval(intervalId);
+    console.log('DESTROY');
+  };
+});
+
+function double(source$: Observable<number>): Observable<number> {
+  return new Observable((subscriber) => {
+    const subscription = source$.subscribe({
+      next: (value) => {
+        console.log('NEXT - double');
+        subscriber.next(value * 2);
+      },
+      complete: () => {
+        subscriber.complete();
+      },
+      error: (err) => {
+        subscriber.error(err);
+      },
+    });
+    return () => {
+      subscription.unsubscribe();
+      console.log('DESTROY - double');
+    };
+  });
+}
+
+const subscription = sequence$.pipe(double).subscribe({
+  next: (value) => {
+    terminalLog(value);
+  },
+  complete: () => {
+    terminalLog('COMPLETE');
+  },
+});
+*/
+
+/*//Обработка колбэка complete и error более красивая запись 
+const sequence$ = new Observable<number>((subscriber: Subscriber<number>) => {
+  console.log('CREATE');
+
+  let count = 0;
+
+  const intervalId = setInterval(() => {
+    console.log(`new counter ${count}`);
+
+    if (count === 5) {
+      subscriber.complete();
+      console.log('COMPLETE');
+      return;
+    }
+
+    subscriber.next(count);
+    console.log('NEXT');
+
+    count += 1;
+  }, 1000);
+
+  return () => {
+    clearInterval(intervalId);
+    console.log('DESTROY');
+  };
+});
+
+function double(source$: Observable<number>): Observable<number> {
+  return new Observable((subscriber) => {
+    const subscription = source$.subscribe({
+      next: (value) => {
+        console.log('NEXT - double');
+        subscriber.next(value * 2);
+      },
+      complete: subscriber.complete.bind(subscriber),
+      error: subscriber.error.bind(subscriber),
+    });
+
+    return () => {
+      subscription.unsubscribe();
+      console.log('DESTROY - double');
+    };
+  });
+}
+
+const subscription = sequence$.pipe(double).subscribe({
+  next: (value) => {
+    terminalLog(value);
+  },
+  complete: () => {
+    terminalLog('COMPLETE');
+  },
+});
+*/
+
+/* //Пример с классом для Subscriber
+class DoubleSubscriber extends SafeSubscriber<number> {
+  next(value: number) {
+    super.next(value * 2);
+  }
+}
+
+const sequence$ = new Observable<number>((subscriber: Subscriber<number>) => {
+  console.log('CREATE');
+
+  let count = 0;
+
+  const intervalId = setInterval(() => {
+    console.log(`new counter ${count}`);
+
+    if (count === 5) {
+      subscriber.complete();
+      console.log('COMPLETE');
+      return;
+    }
+
+    subscriber.next(count);
+    console.log('NEXT');
+
+    count += 1;
+  }, 1000);
+
+  return () => {
+    clearInterval(intervalId);
+    console.log('DESTROY');
+  };
+});
+
+function double(source$: Observable<number>): Observable<number> {
+  return new Observable((subscriber) => {
+    const doubleSubscriber = new DoubleSubscriber(subscriber);
+    const subscription = source$.subscribe(doubleSubscriber);
+    return () => {
+      subscription.unsubscribe();
+      console.log('DESTROY - double');
+    };
+  });
+}
+
+const subscription = sequence$.pipe(double).subscribe({
+  next: (value) => {
+    terminalLog(value);
+  },
+  complete: () => {
+    terminalLog('COMPLETE');
+  },
+});
+*/
+
+/*  */
+
+function myMap<T, U>(cb: (value: T) => U): OperatorFunction<T, U> {
+  return (source$: Observable<T>): Observable<U> =>
+    new Observable((subscriber) => {
+      const subscription = source$.subscribe({
+        next: (value) => {
+          subscriber.next(cb(value));
+        },
+        complete: subscriber.complete.bind(subscriber),
+        error: subscriber.error.bind(subscriber),
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    });
+}
+
+function double(source$: Observable<number>): Observable<number> {
+  return source$.pipe(myMap((value) => value * 2));
+}
