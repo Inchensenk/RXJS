@@ -1,4 +1,3 @@
-import { Observable, OperatorFunction } from 'rxjs';
 import '../../assets/css/style.css';
 
 /* Пример 1
@@ -950,7 +949,7 @@ const subscription = sequence$.pipe(double).subscribe({
 });
 */
 
-/*  */
+/*  
 
 function myMap<T, U>(cb: (value: T) => U): OperatorFunction<T, U> {
   return (source$: Observable<T>): Observable<U> =>
@@ -972,3 +971,165 @@ function myMap<T, U>(cb: (value: T) => U): OperatorFunction<T, U> {
 function double(source$: Observable<number>): Observable<number> {
   return source$.pipe(myMap((value) => value * 2));
 }
+*/
+
+/*Observable вышего порядка пример 1
+
+//Заглушка: функция которая принимает значение и возвращает его в потоке
+function request$<T>(value: T): Observable<T> {
+  return of(value);
+}
+
+//Observable вывсшего порядка
+const streamHOO$ = interval(1000).pipe(map((value) => request$(value)));
+
+streamHOO$.subscribe((stream$) => {
+  stream$.subscribe(terminalLog);
+});
+*/
+
+/*Observable вышего порядка пример 2
+//Заглушка: функция которая принимает значение и возвращает его в потоке
+function request$<T>(value: T): Observable<T> {
+  return of(value);
+}
+
+//Observable вывсшего порядка
+const streamHOO$ = interval(1000).pipe(
+  map((value) => request$(value)),
+  mergeAll(),
+);
+
+streamHOO$.subscribe((value) => {
+  terminalLog(value);
+});
+*/
+
+/*Observable вышего порядка пример 3
+//Заглушка: функция которая принимает значение и возвращает его в потоке
+function request$<T>(value: T): Observable<T> {
+  return of(value);
+}
+
+//Observable вывсшего порядка
+const streamHOO$ = interval(1000).pipe(
+  // map((value) => request$(value)),
+  // mergeAll(),
+  mergeMap((value) => request$(value)),
+);
+
+streamHOO$.subscribe((value) => {
+  terminalLog(value);
+});
+*/
+
+/*Observable вышего порядка пример 4
+
+//mergeMap
+const source$ = interval(1000);
+
+source$
+  .pipe(
+    take(4),
+    mergeMap((count) =>
+      interval(100).pipe(
+        take(3),
+        tap((value) => {
+          console.log(`tap: ${count}: ${value}`);
+        }),
+      ),
+    ),
+  )
+  .subscribe(terminalLog);
+
+// (----------) === 1000ms
+// + === 100ms
+
+//source$ ----------0----------1----------2----------3|
+//mergeMap: (count) => +(count: 0)+(count: 1)+(count: 2)|
+
+//Финальный поток
+//        ----------+(count0: 0)+(count0: 1)+(count0: 2)----------+(count1: 0)+(count1: 1)+(count1: 2)----------+(count2: 0)+(count2: 1)+(count2: 2)----------+(count3: 0)+(count3: 1)+(count3: 2)|
+//        ----------+(0: 0)+(0: 1)+(0: 2)----------+(1: 0)+(1: 1)+(1: 2)----------+(2: 0)+(2: 1)+(2: 2)----------+(3: 0)+(3: 1)+(3: 2)|
+*/
+
+/*Observable вышего порядка пример 5
+//mergeMap
+const source$ = interval(1000);
+
+source$
+  .pipe(
+    take(4),
+    mergeMap(
+      (count) =>
+        interval(500).pipe(
+          take(20),
+          tap((value) => {
+            console.log(`tap: ${count}: ${value}`);
+          }),
+        ),
+      2,
+    ),
+  )
+  .subscribe(terminalLog);
+*/
+
+/*Observable вышего порядка пример 6
+
+//switchMap
+const source$ = interval(1000);
+
+source$
+  .pipe(
+    take(4),
+    switchMap((count) =>
+      interval(500).pipe(
+        take(20),
+        tap((value) => {
+          console.log(`tap: ${count}: ${value}`);
+        }),
+      ),
+    ),
+  )
+  .subscribe(terminalLog);
+*/
+
+/*Observable вышего порядка пример 7
+//concatMap() === mergeMap(, 1)
+//concatMap
+const source$ = interval(1000);
+
+source$
+  .pipe(
+    take(4),
+    concatMap((count) =>
+      interval(500).pipe(
+        take(20),
+        tap((value) => {
+          console.log(`tap: ${count}: ${value}`);
+        }),
+      ),
+    ),
+  )
+  .subscribe(terminalLog);
+  */
+
+/*Observable вышего порядка пример 8
+
+//exhaustMap
+const source$ = interval(1000);
+
+source$
+  .pipe(
+    take(50),
+    exhaustMap((count) =>
+      interval(500).pipe(
+        take(20),
+        tap((value) => {
+          console.log(`tap: ${count}: ${value}`);
+        }),
+      ),
+    ),
+  )
+  .subscribe(terminalLog);
+  */
